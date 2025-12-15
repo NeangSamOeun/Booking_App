@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
           /// --- FIX: Dynamic Bottom curved background ---
           Positioned(
             // Start the curved background around 40% from the top
-            top: height * 0.40,
+            top: 0,
             left: 0,
             right: 0,
             bottom: 0, // Extend to the very bottom of the screen
@@ -40,8 +40,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 borderRadius: BorderRadius.only(
                   // Reduced curvature for better fit with the content
-                  topLeft: Radius.circular(120), 
-                  topRight: Radius.circular(120),
+                  // topLeft: Radius.circular(120), 
+                  // topRight: Radius.circular(120),
                 ),
               ),
             ),
@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             "Register",
                             style: TextStyle(
                               fontSize: 16,
-                              color: _primaryBlue,
+                              color: Colors.white70,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: TextStyle(
                                       fontSize: 28,
                                       fontWeight: FontWeight.bold,
-                                      color: _primaryBlue,
+                                      color: Colors.white70,
                                     ),
                                   ),
                                   TextSpan(
@@ -108,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFF1E88E5), // Used a slight variation of blue
+                                      color: Colors.white70, // Used a slight variation of blue
                                     ),
                                   ),
                                 ],

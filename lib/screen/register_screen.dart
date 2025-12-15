@@ -1,3 +1,4 @@
+import 'package:booking_app/screen/main_screen_controller.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart'; // Ensure this path is correct
 
@@ -28,7 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           /// --- Dynamic Bottom curved blue background ---
           Positioned(
             // Start the curved background around 35% from the top
-            top: height * 0.35, 
+            top: 0, 
             left: 0,
             right: 0,
             bottom: 0, // Extend to the very bottom
@@ -40,8 +41,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   end: Alignment.bottomCenter,
                 ),
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(150),
-                  topRight: Radius.circular(150),
+                  // topLeft: Radius.circular(150),
+                  // topRight: Radius.circular(150),
                 ),
               ),
             ),
@@ -66,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           /// Back to Login Button
                           IconButton(
-                            icon: const Icon(Icons.arrow_back),
+                            icon: const Icon(Icons.arrow_back, color: Colors.white70),
                             onPressed: () {
                               Navigator.pushReplacement(
                                 context,
@@ -91,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: _primaryBlue, // Used defined color
+                            color: Colors.white70, // Used defined color
                           ),
                         ),
                       ),
@@ -185,7 +186,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const MainScreenController()),
+                            );
+                          },
                           child: const Text(
                             "Register",
                             style: TextStyle(
