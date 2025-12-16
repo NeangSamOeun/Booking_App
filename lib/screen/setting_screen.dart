@@ -1,12 +1,16 @@
 // screens/setting_screen.dart
 
+import 'package:booking_app/screen/login_screen.dart';
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AuthService _authService = AuthService(); // ✅ create instance
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: _buildAppBar(),
@@ -15,7 +19,7 @@ class SettingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. Account Settings Section ---
+            // --- Account Settings Section ---
             _buildSectionTitle('Account Settings'),
             _buildSettingsTile(
               context,
@@ -35,8 +39,8 @@ class SettingScreen extends StatelessWidget {
               title: 'Notifications',
               onTap: () {},
             ),
-            
-            // --- 2. General Settings Section ---
+
+            // --- General Section ---
             _buildSectionTitle('General'),
             _buildSettingsTile(
               context,
@@ -48,7 +52,7 @@ class SettingScreen extends StatelessWidget {
               context,
               icon: Icons.palette_outlined,
               title: 'Theme (Light/Dark)',
-              trailing: const SwitchWidget(), // Custom switch widget
+              trailing: const SwitchWidget(),
               onTap: () {},
             ),
             _buildSettingsTile(
@@ -64,7 +68,7 @@ class SettingScreen extends StatelessWidget {
               onTap: () {},
             ),
 
-            // --- 3. Action Section ---
+            // --- Actions Section ---
             _buildSectionTitle('Actions'),
             _buildSettingsTile(
               context,
@@ -72,7 +76,7 @@ class SettingScreen extends StatelessWidget {
               title: 'Logout',
               color: Colors.red,
               onTap: () {
-                _showLogoutDialog(context);
+                _showLogoutDialog(context, _authService); // ✅ pass AuthService
               },
             ),
           ],
@@ -81,7 +85,6 @@ class SettingScreen extends StatelessWidget {
     );
   }
 
-  // --- App Bar ---
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: const Text(
@@ -93,7 +96,6 @@ class SettingScreen extends StatelessWidget {
     );
   }
 
-  // --- Helper for Section Titles ---
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(top: 20.0, left: 16.0, bottom: 8.0),
@@ -108,7 +110,6 @@ class SettingScreen extends StatelessWidget {
     );
   }
 
-  // --- Helper for Individual Settings Tile ---
   Widget _buildSettingsTile(
     BuildContext context, {
     required IconData icon,
@@ -130,42 +131,50 @@ class SettingScreen extends StatelessWidget {
     );
   }
 
-  // --- Logout Confirmation Dialog ---
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to log out of your account?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-              child: const Text('Logout', style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                // 🚨 Add your actual authentication/logout logic here 🚨
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Logged out successfully!')),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // --- Logout Confirmation Dialog with actual service call ---
+  void _showLogoutDialog(BuildContext context, AuthService authService) {
+  showDialog(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: const Text('Confirm Logout'),
+        content: const Text('Are you sure you want to log out of your account?'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+            },
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Logout', style: TextStyle(color: Colors.white)),
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+
+              // Call AuthService to logout
+              await AuthService().logout();
+
+              // Navigate to login screen and clear navigation stack
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false,
+              );
+
+              // Optional: show a SnackBar
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Logged out successfully!')),
+              );
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 }
 
-// --- Custom Widget for the Switch (e.g., Theme Toggle) ---
+// --- Custom Switch Widget (Theme toggle example) ---
 class SwitchWidget extends StatefulWidget {
   const SwitchWidget({super.key});
 
@@ -174,17 +183,15 @@ class SwitchWidget extends StatefulWidget {
 }
 
 class _SwitchWidgetState extends State<SwitchWidget> {
-  bool isDarkMode = false; // Initial state
+  bool isDarkMode = false;
 
   @override
   Widget build(BuildContext context) {
     return Switch(
       value: isDarkMode,
       onChanged: (bool value) {
-        setState(() {
-          isDarkMode = value;
-          // In a real app, you would update the app theme here.
-        });
+        setState(() => isDarkMode = value);
+        // TODO: integrate actual theme change here if needed
       },
       activeColor: Colors.red[400],
     );

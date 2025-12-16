@@ -32,7 +32,7 @@ class _MainScreenControllerState extends State<MainScreenController> {
   Widget _buildBottomNavBar() {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.red[400], 
+      selectedItemColor: Colors.red[400],
       unselectedItemColor: Colors.grey,
       currentIndex: _currentIndex,
       onTap: _onTap, 

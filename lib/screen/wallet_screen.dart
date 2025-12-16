@@ -141,7 +141,7 @@ class WalletScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '₹ ${tx['amount']}',
+                  '\$${tx['amount']}',
                   style: TextStyle(
                     color: isCredit ? Colors.green.shade700 : Colors.red.shade700,
                     fontWeight: FontWeight.bold,

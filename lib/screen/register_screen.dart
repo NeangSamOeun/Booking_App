@@ -1,128 +1,293 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'login_screen.dart';
+import '../services/firestore_service.dart';
 import 'main_screen_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
-
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _firstNameCtl = TextEditingController();
+  final _lastNameCtl = TextEditingController();
   final _emailCtl = TextEditingController();
   final _passwordCtl = TextEditingController();
   final _confirmCtl = TextEditingController();
   final AuthService _auth = AuthService();
-
+  final FirestoreService _firestore = FirestoreService();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
-
-  static const Color _primaryBlue = Color(0xFF1E88E5);
-  static const Color _darkBlue = Color(0xFF0D47A1);
+  String _gender = 'Male';
+  // Use the red colors from the image
+  static const Color _primaryRed = Color(0xFFE53935); // A standard red like the button
+  static const Color _lightRed = Color(0xFFEF5350); // A slightly lighter red for the curves
+  static const Color _darkRed = Color(0xFFC62828); // A dark red for contrast
 
   @override
   void dispose() {
+    _firstNameCtl.dispose();
+    _lastNameCtl.dispose();
     _emailCtl.dispose();
     _passwordCtl.dispose();
     _confirmCtl.dispose();
     super.dispose();
   }
+  
+  // Custom Widget for the input fields to match the login screen style
+  Widget _styledInputField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    bool isPassword = false,
+    bool isConfirm = false,
+  }) {
+    final obscure = isPassword ? (isConfirm ? _obscureConfirm : _obscurePassword) : false;
+    return Column(
+      children: [
+        TextField(
+          controller: controller,
+          obscureText: obscure,
+          style: const TextStyle(color: Colors.black), // Text color inside the field
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey.shade600),
+            prefixIcon: Icon(icon, color: Colors.grey.shade600),
+            suffixIcon: isPassword 
+                ? IconButton(
+                    icon: Icon(
+                      obscure ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.grey.shade600,
+                    ),
+                    onPressed: () => setState(() {
+                      if (isConfirm) {
+                        _obscureConfirm = !_obscureConfirm;
+                      } else {
+                        _obscurePassword = !_obscurePassword;
+                      }
+                    }),
+                  )
+                : null,
+            // Customizing the border to be minimalistic, matching the image's style
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 15),
+          ),
+        ),
+        // Add a subtle line separator at the bottom like in the image
+        Divider(
+          color: Colors.grey.shade300,
+          height: 1,
+          thickness: 1,
+        ),
+      ],
+    );
+  }
+
+  // Custom Widget for the gender dropdown to match the input field style
+  Widget _styledGenderDropdown() {
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          value: _gender,
+          icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.transgender, color: Colors.grey.shade600),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 0),
+          ),
+          items: ['Male', 'Female', 'Other']
+              .map((g) => DropdownMenuItem(
+                    value: g, 
+                    child: Text(g, style: const TextStyle(color: Colors.black)),
+                  ))
+              .toList(),
+          onChanged: (value) {
+            if (value != null) setState(() => _gender = value);
+          },
+        ),
+        // Add a subtle line separator at the bottom like in the image
+        Divider(
+          color: Colors.grey.shade300,
+          height: 1,
+          thickness: 1,
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [_primaryBlue, _darkBlue],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+      // The overall background is white
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // 1. The top background shape (similar to the image)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.35, // Adjust height as needed
+              decoration: BoxDecoration(
+                color: _primaryRed,
+                gradient: const LinearGradient(
+                  colors: [_lightRed, _primaryRed],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-
-                const Spacer(),
-
-                _inputField(
-                  controller: _emailCtl,
-                  hint: "Email",
-                  icon: Icons.email,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.elliptical(500, 150),
+                  bottomRight: Radius.elliptical(500, 150),
                 ),
-
-                const SizedBox(height: 20),
-
-                _inputField(
-                  controller: _passwordCtl,
-                  hint: "Password",
-                  icon: Icons.lock,
-                  isPassword: true,
-                ),
-
-                const SizedBox(height: 20),
-
-                _inputField(
-                  controller: _confirmCtl,
-                  hint: "Confirm Password",
-                  icon: Icons.lock,
-                  isPassword: true,
-                  isConfirm: true,
-                ),
-
-                const SizedBox(height: 30),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    onPressed: _register,
-                    child: const Text(
-                      "Register",
-                      style: TextStyle(
-                        color: _primaryBlue,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10, left: 10),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
                 ),
-
-                const Spacer(),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // 2. The main content (Logo, Card, Fields)
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.1), // Spacing for the top section
+                  
+                  // Logo/Bus Card
+                  Center(
+                    child: Card(
+                      color: Colors.white,
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.directions_bus, color: _primaryRed, size: 40),
+                            const Text(
+                              "BOOKABUS.com",
+                              style: TextStyle(color: _primaryRed, fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+                  // "Register" Text
+                  const Center(
+                    child: Text(
+                      "Register",
+                      style: TextStyle(color: _primaryRed, fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 30),
+
+                  // Input Fields Container (Card-like appearance)
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Column(
+                        children: [
+                          _styledInputField(controller: _firstNameCtl, hint: "First Name", icon: Icons.person),
+                          _styledInputField(controller: _lastNameCtl, hint: "Last Name", icon: Icons.person),
+                          _styledInputField(controller: _emailCtl, hint: "Email", icon: Icons.email),
+                          _styledInputField(controller: _passwordCtl, hint: "Password", icon: Icons.lock, isPassword: true),
+                          _styledInputField(controller: _confirmCtl, hint: "Confirm Password", icon: Icons.lock, isPassword: true, isConfirm: true),
+                          _styledGenderDropdown(),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Register button
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryRed, // Red button color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: _register,
+                      child: const Text(
+                        "Register",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Already have an account? Login
+                  TextButton(
+                    onPressed: () {
+                      // Navigate back to the Login screen
+                      Navigator.pop(context); // Assuming this screen is pushed on top of the LoginScreen
+                      // If LoginScreen is not the previous route, you'd use:
+                      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                    },
+                    child: const Text(
+                      "Already have an account? Login",
+                      style: TextStyle(color: _primaryRed, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  // Your existing registration and error handling logic
   Future<void> _register() async {
     if (_passwordCtl.text != _confirmCtl.text) {
       _showError("Passwords do not match");
       return;
     }
 
+    if (_firstNameCtl.text.isEmpty ||
+        _lastNameCtl.text.isEmpty ||
+        _emailCtl.text.isEmpty ||
+        _passwordCtl.text.isEmpty) {
+      _showError("Please fill all fields");
+      return;
+    }
+
     try {
       final user = await _auth.register(
-        _emailCtl.text,
-        _passwordCtl.text,
+        email: _emailCtl.text.trim(),
+        password: _passwordCtl.text.trim(),
+        firstName: _firstNameCtl.text.trim(),
+        lastName: _lastNameCtl.text.trim(),
+        gender: _gender,
       );
 
       if (user != null && mounted) {
@@ -135,54 +300,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _showError(e.toString());
     }
   }
-
+  
   void _showError(String msg) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
-  }
-
-  Widget _inputField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-    bool isConfirm = false,
-  }) {
-    final obscure =
-        isPassword ? (isConfirm ? _obscureConfirm : _obscurePassword) : false;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: _primaryBlue),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              obscureText: obscure,
-              decoration: const InputDecoration(border: InputBorder.none),
-            ),
-          ),
-          if (isPassword)
-            IconButton(
-              icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
-              onPressed: () {
-                setState(() {
-                  if (isConfirm) {
-                    _obscureConfirm = !_obscureConfirm;
-                  } else {
-                    _obscurePassword = !_obscurePassword;
-                  }
-                });
-              },
-            ),
-        ],
-      ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg)),
     );
   }
 }

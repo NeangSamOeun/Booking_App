@@ -1,92 +1,143 @@
-// home_screen.dart
-
-import 'package:booking_app/widgets/search_card.dart';
 import 'package:flutter/material.dart';
-// 1. RE-IMPORT the core widget needed for the screen
-// import 'widgets/search_card.dart'; 
+import '../services/auth_service.dart';
+import '../widgets/search_card.dart';
 
-class HomeScreen extends StatelessWidget {
+/// ================= APP COLORS =================
+class AppColors {
+  static const primary = Color(0xFFE53935);
+  static const primaryLight = Color(0xFFEF5350);
+  static const background = Color(0xFFF5F5F5);
+}
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String lastName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastName();
+  }
+
+  Future<void> _loadLastName() async {
+    try {
+      final user = await AuthService().getCurrentUser();
+      if (user != null && mounted) {
+        setState(() {
+          lastName = user.lastName;
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Light background for the overall screen
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            _buildHeader(context),
-            
-            // 2. RE-ENABLE the SearchCard
+            _Header(lastName: lastName),
             Transform.translate(
-              offset: const Offset(0, -30), // Negative margin for overlap effect
+              offset: const Offset(0, -36),
               child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: SearchCard(), // Contains search fields and journey details
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SearchCard(),
               ),
             ),
-            
-            // Add a padding to the bottom so the last content isn't cut off by the BottomNavBar
-            const SizedBox(height: 20), 
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
+}
 
-  // --- Header Structure ---
-  Widget _buildHeader(BuildContext context) {
-    const double headerHeight = 180; // Slightly taller to fit the bus graphic better
+/// ================= HEADER =================
+class _Header extends StatelessWidget {
+  final String lastName;
 
+  const _Header({required this.lastName});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      height: headerHeight,
+      height: 210,
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.red[400], // Primary Header Color
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 18,
+        left: 20,
+        right: 20,
       ),
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10, left: 20, right: 20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary,
+            AppColors.primaryLight,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(28),
+        ),
+      ),
       child: Stack(
-        alignment: Alignment.center,
         children: [
-          // Greeting Text (Aligned left/center)
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Hey John!', style: TextStyle(
+          /// ---------- GREETING ----------
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hi, ${lastName.isNotEmpty ? lastName : 'Traveler'} 👋',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                )),
-                Text('Where you want go.', style: TextStyle(
-                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Where would you like to go today?',
+                style: TextStyle(
+                  color: Colors.white70,
                   fontSize: 16,
-                )),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
-          
-          // User Profile Image (Top Right - Based on image_45e9b8.png)
-          const Align(
-            alignment: Alignment.topRight,
-            child: Padding(
-              padding: EdgeInsets.only(top: 10),
+
+          /// ---------- PROFILE ----------
+          Positioned(
+            top: 0,
+            right: 0,
+            child: CircleAvatar(
+              radius: 26,
+              backgroundColor: Colors.white,
               child: CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.white,
-                // Replace with actual image asset if available
-                child: Icon(Icons.person, color: Colors.red), 
+                radius: 23,
+                backgroundColor: AppColors.primaryLight,
+                child: const Icon(
+                  Icons.person,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
-          
-          // Custom Bus Graphic (Simulating the 'Bus in the clouds' effect)
-          const Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 25), // Push slightly above the bottom edge
+
+          /// ---------- GRAPHIC ----------
+          const Positioned(
+            bottom: 18,
+            left: 0,
+            right: 0,
+            child: Center(
               child: _BusInCloudsGraphic(),
             ),
           ),
@@ -96,29 +147,27 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// --- Custom Widget to replicate the stylized bus graphic ---
+/// ================= GRAPHIC =================
 class _BusInCloudsGraphic extends StatelessWidget {
   const _BusInCloudsGraphic();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // The overall size of the graphic area
-      width: 80,
-      height: 60,
+    return SizedBox(
+      width: 110,
+      height: 70,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Cloud Base (Simulated)
-          Transform.translate(
-            offset: const Offset(0, 15),
-            child: Icon(Icons.cloud, color: Colors.white.withOpacity(0.4), size: 70),
-          ),
-          // Bus Icon (The main element)
           Icon(
-            Icons.directions_bus, 
-            color: Colors.red[100], // Lighter color for stylized look
-            size: 45,
+            Icons.cloud,
+            size: 95,
+            color: Colors.white.withOpacity(0.25),
+          ),
+          Icon(
+            Icons.directions_bus,
+            size: 46,
+            color: Colors.white.withOpacity(0.95),
           ),
         ],
       ),
