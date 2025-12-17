@@ -35,7 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
   
-  // Custom Widget for the input fields to match the login screen style
+  // input field styled widget
   Widget _styledInputField({
     required TextEditingController controller,
     required String hint,
@@ -44,92 +44,107 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool isConfirm = false,
   }) {
     final obscure = isPassword ? (isConfirm ? _obscureConfirm : _obscurePassword) : false;
-    return Column(
-      children: [
-        TextField(
-          controller: controller,
-          obscureText: obscure,
-          style: const TextStyle(color: Colors.black), // Text color inside the field
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade600),
-            prefixIcon: Icon(icon, color: Colors.grey.shade600),
-            suffixIcon: isPassword 
-                ? IconButton(
-                    icon: Icon(
-                      obscure ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey.shade600,
-                    ),
-                    onPressed: () => setState(() {
-                      if (isConfirm) {
-                        _obscureConfirm = !_obscureConfirm;
-                      } else {
-                        _obscurePassword = !_obscurePassword;
-                      }
-                    }),
-                  )
-                : null,
-            // Customizing the border to be minimalistic, matching the image's style
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 15),
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6), // less vertical space
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscure,
+        style: const TextStyle(color: Colors.black),
+        decoration: InputDecoration(
+          labelText: hint, // floating label
+          floatingLabelBehavior: FloatingLabelBehavior.auto,
+          labelStyle: TextStyle(color: Colors.grey.shade600),
+          prefixIcon: Icon(icon, color: Colors.red.shade400),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    obscure ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey.shade600,
+                  ),
+                  onPressed: () => setState(() {
+                    if (isConfirm) {
+                      _obscureConfirm = !_obscureConfirm;
+                    } else {
+                      _obscurePassword = !_obscurePassword;
+                    }
+                  }),
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         ),
-        // Add a subtle line separator at the bottom like in the image
-        Divider(
-          color: Colors.grey.shade300,
-          height: 1,
-          thickness: 1,
-        ),
-      ],
+      ),
     );
   }
 
-  // Custom Widget for the gender dropdown to match the input field style
+  // gender dropdown (compact version)
   Widget _styledGenderDropdown() {
-    return Column(
-      children: [
-        DropdownButtonFormField<String>(
-          value: _gender,
-          icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
-          decoration: InputDecoration(
-            prefixIcon: Icon(Icons.transgender, color: Colors.grey.shade600),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 0),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
-          items: ['Male', 'Female', 'Other']
-              .map((g) => DropdownMenuItem(
-                    value: g, 
-                    child: Text(g, style: const TextStyle(color: Colors.black)),
-                  ))
-              .toList(),
-          onChanged: (value) {
-            if (value != null) setState(() => _gender = value);
-          },
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _gender,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: 'Gender',
+          floatingLabelBehavior: FloatingLabelBehavior.auto,
+          labelStyle: TextStyle(color: Colors.grey.shade600),
+          border: InputBorder.none,
+          prefixIcon: Icon(Icons.transgender, color: Colors.red.shade400),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
-        // Add a subtle line separator at the bottom like in the image
-        Divider(
-          color: Colors.grey.shade300,
-          height: 1,
-          thickness: 1,
-        ),
-      ],
+        items: ['Male', 'Female'].map((gender) {
+          return DropdownMenuItem(
+            value: gender,
+            child: Text(gender, style: const TextStyle(color: Colors.black)),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) setState(() => _gender = value);
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The overall background is white
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // 1. The top background shape (similar to the image)
+          // 1. Red top background
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.35, // Adjust height as needed
+              height: MediaQuery.of(context).size.height * 0.35,
               decoration: BoxDecoration(
                 color: _primaryRed,
                 gradient: const LinearGradient(
@@ -142,30 +157,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   bottomRight: Radius.elliptical(500, 150),
                 ),
               ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10, left: 10),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ),
-              ),
             ),
           ),
 
-          // 2. The main content (Logo, Card, Fields)
+          // 2. Main scrollable content
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.1), // Spacing for the top section
-                  
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+
                   // Logo/Bus Card
                   Center(
                     child: Card(
@@ -182,25 +185,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             const Icon(Icons.directions_bus, color: _primaryRed, size: 40),
                             const Text(
                               "BOOKABUS.com",
-                              style: TextStyle(color: _primaryRed, fontWeight: FontWeight.bold, fontSize: 16),
+                              style: TextStyle(
+                                color: _primaryRed,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 50),
-                  // "Register" Text
+
+                  // "Register" Title
                   const Center(
                     child: Text(
                       "Register",
-                      style: TextStyle(color: _primaryRed, fontSize: 24, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: _primaryRed,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 30),
 
-                  // Input Fields Container (Card-like appearance)
+                  // Input Fields Container
                   Card(
                     elevation: 3,
                     shape: RoundedRectangleBorder(
@@ -221,14 +234,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 15),
 
                   // Register button
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryRed, // Red button color
+                        backgroundColor: _primaryRed,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -242,16 +255,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 5),
 
                   // Already have an account? Login
                   TextButton(
-                    onPressed: () {
-                      // Navigate back to the Login screen
-                      Navigator.pop(context); // Assuming this screen is pushed on top of the LoginScreen
-                      // If LoginScreen is not the previous route, you'd use:
-                      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-                    },
+                    onPressed: () => Navigator.pop(context),
                     child: const Text(
                       "Already have an account? Login",
                       style: TextStyle(color: _primaryRed, fontSize: 14),
@@ -261,12 +269,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
+
+          // 3. Back button on top of everything
+          Positioned(
+            top: 20,
+            left: 10,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         ],
       ),
     );
   }
-
-  // Your existing registration and error handling logic
+  //registration and error handling logic
   Future<void> _register() async {
     if (_passwordCtl.text != _confirmCtl.text) {
       _showError("Passwords do not match");
