@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _auth = AuthService();
 
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   // Define the colors based on the image:
   // The primary reddish-coral color (used for the header and button)
@@ -33,23 +34,35 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    try {
-      final user = await _auth.login(
-        _emailCtl.text,
-        _passwordCtl.text,
-      );
-
-      if (user != null && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainScreenController()),
-        );
-      }
-    } catch (e) {
-      _showError(e.toString());
-    }
+  if (_emailCtl.text.isEmpty || _passwordCtl.text.isEmpty) {
+    _showError("Please enter email and password");
+    return;
   }
 
+  setState(() => _isLoading = true);
+
+  try {
+    final user = await _auth.login(
+      _emailCtl.text.trim(),
+      _passwordCtl.text.trim(),
+    );
+
+    if (user != null && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MainScreenController(),
+        ),
+      );
+    }
+  } catch (e) {
+    _showError("Login failed. Check email or password");
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+}
   void _showError(String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
@@ -126,21 +139,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: double.infinity,
                                 height: 52,
                                 child: ElevatedButton(
-                                  onPressed: _login,
+                                  onPressed: _isLoading ? null : _login,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red.shade400,
+                                    disabledBackgroundColor: Colors.red.shade200,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(30),
                                     ),
                                   ),
-                                  child: const Text(
-                                    "Login",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text(
+                                          "Login",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                 ),
                               ),
 
@@ -307,7 +330,6 @@ class _LoginHeaderClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     Path path = Path();
     path.lineTo(0, size.height * 0.6); // Start point of the curve on the left
-
     // Create the smooth curve (S-shape curve is tricky, using a basic Bezier for a smooth upward curve)
     path.quadraticBezierTo(
       size.width * 0.25, size.height * 0.9, 
@@ -317,7 +339,6 @@ class _LoginHeaderClipper extends CustomClipper<Path> {
       size.width * 0.75, size.height * 0.6,
       size.width, size.height * 0.7, // End point of the curve on the right
     );
-    
     path.lineTo(size.width, 0);
     path.close();
     return path;

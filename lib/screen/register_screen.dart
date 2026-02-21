@@ -20,6 +20,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   String _gender = 'Male';
+  bool _isLoading = false;
+
   // Use the red colors from the image
   static const Color _primaryRed = Color(0xFFE53935); // A standard red like the button
   static const Color _lightRed = Color(0xFFEF5350); // A slightly lighter red for the curves
@@ -210,7 +212,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
-
+                  
                   const SizedBox(height: 30),
 
                   // Input Fields Container
@@ -242,18 +244,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primaryRed,
+                        disabledBackgroundColor: _primaryRed.withOpacity(0.6),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
                         elevation: 5,
                       ),
-                      onPressed: _register,
-                      child: const Text(
-                        "Register",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
+                      onPressed: _isLoading ? null : _register,
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              "Register",
+                              style: TextStyle(color: Colors.white, fontSize: 18),
+                            ),
                     ),
                   ),
+
 
                   const SizedBox(height: 5),
 
@@ -285,38 +298,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
   //registration and error handling logic
   Future<void> _register() async {
-    if (_passwordCtl.text != _confirmCtl.text) {
-      _showError("Passwords do not match");
-      return;
-    }
+  if (_passwordCtl.text != _confirmCtl.text) {
+    _showError("Passwords do not match");
+    return;
+  }
 
-    if (_firstNameCtl.text.isEmpty ||
-        _lastNameCtl.text.isEmpty ||
-        _emailCtl.text.isEmpty ||
-        _passwordCtl.text.isEmpty) {
-      _showError("Please fill all fields");
-      return;
-    }
+  if (_firstNameCtl.text.isEmpty ||
+      _lastNameCtl.text.isEmpty ||
+      _emailCtl.text.isEmpty ||
+      _passwordCtl.text.isEmpty) {
+    _showError("Please fill all fields");
+    return;
+  }
 
-    try {
-      final user = await _auth.register(
-        email: _emailCtl.text.trim(),
-        password: _passwordCtl.text.trim(),
-        firstName: _firstNameCtl.text.trim(),
-        lastName: _lastNameCtl.text.trim(),
-        gender: _gender,
+  setState(() => _isLoading = true);
+
+  try {
+    final user = await _auth.register(
+      email: _emailCtl.text.trim(),
+      password: _passwordCtl.text.trim(),
+      firstName: _firstNameCtl.text.trim(),
+      lastName: _lastNameCtl.text.trim(),
+      gender: _gender,
+    );
+
+    if (user != null && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MainScreenController(),
+        ),
       );
-
-      if (user != null && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainScreenController()),
-        );
-      }
-    } catch (e) {
-      _showError(e.toString());
+    }
+  } catch (e) {
+    _showError("Registration failed. Try again.");
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
+}
+
   
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(

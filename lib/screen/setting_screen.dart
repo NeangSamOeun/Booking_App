@@ -1,5 +1,6 @@
 // screens/setting_screen.dart
 
+import 'package:booking_app/screen/EditProfileScreen.dart';
 import 'package:booking_app/screen/login_screen.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
@@ -21,11 +22,18 @@ class SettingScreen extends StatelessWidget {
           children: [
             // --- Account Settings Section ---
             _buildSectionTitle('Account Settings'),
+           // Update this specific tile in your SettingScreen.dart
             _buildSettingsTile(
               context,
               icon: Icons.person_outline,
               title: 'Edit Profile',
-              onTap: () {},
+              onTap: () {
+                // ✅ Add navigation here
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                );
+              },
             ),
             _buildSettingsTile(
               context,
